@@ -1,0 +1,153 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* Surfaces */
+  --bg: oklch(0.985 0.002 90);
+  --bg-subtle: oklch(0.968 0.003 90);
+  --surface: oklch(1 0 0);
+  --surface-raised: oklch(1 0 0);
+  --border: oklch(0.915 0.004 90);
+  --border-strong: oklch(0.86 0.005 90);
+
+  /* Text */
+  --text: oklch(0.21 0.006 90);
+  --text-secondary: oklch(0.45 0.008 90);
+  --text-tertiary: oklch(0.6 0.008 90);
+
+  /* Accent — deep stage-green */
+  --accent: oklch(0.5 0.1 158);
+  --accent-hover: oklch(0.44 0.1 158);
+  --accent-soft: oklch(0.95 0.025 158);
+  --accent-text: oklch(0.38 0.09 158);
+  --on-accent: oklch(0.99 0.01 158);
+
+  /* Semantic */
+  --success: oklch(0.55 0.12 152);
+  --success-soft: oklch(0.95 0.03 152);
+  --warning: oklch(0.62 0.13 70);
+  --warning-soft: oklch(0.96 0.035 80);
+  --danger: oklch(0.55 0.17 25);
+  --danger-soft: oklch(0.96 0.025 25);
+  --info: oklch(0.55 0.1 240);
+  --info-soft: oklch(0.95 0.02 240);
+
+  --ring: oklch(0.5 0.1 158 / 0.35);
+  --shadow-sm: 0 1px 2px oklch(0.2 0.01 90 / 0.05);
+  --shadow-md: 0 1px 2px oklch(0.2 0.01 90 / 0.05), 0 4px 12px oklch(0.2 0.01 90 / 0.06);
+  --shadow-lg: 0 2px 4px oklch(0.2 0.01 90 / 0.05), 0 12px 32px oklch(0.2 0.01 90 / 0.1);
+}
+
+.dark {
+  --bg: oklch(0.185 0.005 90);
+  --bg-subtle: oklch(0.215 0.005 90);
+  --surface: oklch(0.235 0.005 90);
+  --surface-raised: oklch(0.265 0.006 90);
+  --border: oklch(0.3 0.006 90);
+  --border-strong: oklch(0.36 0.007 90);
+
+  --text: oklch(0.93 0.004 90);
+  --text-secondary: oklch(0.72 0.006 90);
+  --text-tertiary: oklch(0.56 0.006 90);
+
+  --accent: oklch(0.72 0.12 158);
+  --accent-hover: oklch(0.78 0.12 158);
+  --accent-soft: oklch(0.28 0.04 158);
+  --accent-text: oklch(0.78 0.11 158);
+  --on-accent: oklch(0.18 0.04 158);
+
+  --success: oklch(0.7 0.13 152);
+  --success-soft: oklch(0.28 0.04 152);
+  --warning: oklch(0.75 0.13 80);
+  --warning-soft: oklch(0.29 0.045 80);
+  --danger: oklch(0.68 0.16 25);
+  --danger-soft: oklch(0.28 0.04 25);
+  --info: oklch(0.7 0.1 240);
+  --info-soft: oklch(0.28 0.035 240);
+
+  --ring: oklch(0.72 0.12 158 / 0.4);
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.25);
+  --shadow-md: 0 1px 2px oklch(0 0 0 / 0.25), 0 4px 12px oklch(0 0 0 / 0.3);
+  --shadow-lg: 0 2px 4px oklch(0 0 0 / 0.3), 0 12px 32px oklch(0 0 0 / 0.45);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-subtle: var(--bg-subtle);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-text: var(--accent-text);
+  --color-on-accent: var(--on-accent);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+html {
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+/* Scrollbars — quiet */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Focus visible — accessible, consistent */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

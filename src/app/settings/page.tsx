@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { Download, KeyRound, Trash2, Upload } from "lucide-react";
 import { useGreenroom } from "@/lib/store";
+import { parseBackup } from "@/lib/backup";
 import { useMounted } from "@/hooks/useMounted";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -34,18 +35,14 @@ export default function SettingsPage() {
   const importAll = (file: File) => {
     const reader = new FileReader();
     reader.onload = () => {
-      try {
-        const text = String(reader.result);
-        const parsed = JSON.parse(text);
-        if (!parsed?.state || typeof parsed.state !== "object") {
-          throw new Error("Not a Greenroom backup file");
-        }
-        localStorage.setItem("greenroom-v1", text);
-        setImportMessage("Backup restored — reloading…");
-        setTimeout(() => window.location.reload(), 800);
-      } catch {
-        setImportMessage("That file isn't a valid Greenroom backup.");
+      const result = parseBackup(String(reader.result));
+      if (!result.ok) {
+        setImportMessage(result.error);
+        return;
       }
+      localStorage.setItem("greenroom-v1", result.text);
+      setImportMessage("Backup restored — reloading…");
+      setTimeout(() => window.location.reload(), 800);
     };
     reader.readAsText(file);
   };

@@ -15,6 +15,7 @@ import { QuestionsPanel } from "@/components/workspace/QuestionsPanel";
 import { MockPanel } from "@/components/workspace/MockPanel";
 import { NotesPanel } from "@/components/workspace/NotesPanel";
 import { countdownLabel } from "@/lib/utils";
+import { fromDateInputValue, toDateInputValue } from "@/lib/dates";
 
 type TabValue = "analysis" | "questions" | "mock" | "notes";
 const TAB_VALUES: TabValue[] = ["analysis", "questions", "mock", "notes"];
@@ -131,12 +132,10 @@ function Workspace({ id }: { id: string }) {
             <input
               id="interview-date"
               type="date"
-              value={job.interviewDate ? job.interviewDate.slice(0, 10) : ""}
+              value={job.interviewDate ? toDateInputValue(job.interviewDate) : ""}
               onChange={(e) =>
                 updateJob(job.id, {
-                  interviewDate: e.target.value
-                    ? new Date(e.target.value + "T09:00:00").toISOString()
-                    : null,
+                  interviewDate: e.target.value ? fromDateInputValue(e.target.value) : null,
                 })
               }
               className="h-8.5 rounded-lg border border-border bg-surface pl-8.5 pr-2.5 text-sm text-text transition-colors hover:border-border-strong focus:border-accent focus:outline-none"

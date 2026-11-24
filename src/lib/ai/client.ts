@@ -1,4 +1,4 @@
-import type { AiTask } from "@/lib/types";
+import type { AiTask } from "../types.ts";
 
 export interface AiResult<T> {
   ok: boolean;

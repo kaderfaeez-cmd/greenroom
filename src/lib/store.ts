@@ -11,8 +11,13 @@ import type {
   MockTurn,
   Stage,
   StarStory,
-} from "@/lib/types";
-import { nowIso, uid } from "@/lib/utils";
+} from "./types.ts";
+import { nowIso, uid } from "./utils.ts";
+import { dayKey } from "./dates.ts";
+
+// Pure helpers live in progress.ts (testable without the store); re-exported
+// here so existing imports from "@/lib/store" keep working.
+export { computeStreak, readinessScore } from "./progress.ts";
 
 interface GreenroomState {
   jobs: Job[];
@@ -43,7 +48,7 @@ interface GreenroomState {
 }
 
 function todayKey(): string {
-  return new Date().toISOString().slice(0, 10);
+  return dayKey(new Date());
 }
 
 export const useGreenroom = create<GreenroomState>()(
@@ -219,32 +224,3 @@ export const useGreenroom = create<GreenroomState>()(
     },
   ),
 );
-
-/** Consecutive-day practice streak ending today or yesterday. */
-export function computeStreak(activityDays: string[]): number {
-  const days = new Set(activityDays);
-  const cursor = new Date();
-  let streak = 0;
-  // Allow streak to survive if today has no activity yet.
-  if (!days.has(cursor.toISOString().slice(0, 10))) {
-    cursor.setDate(cursor.getDate() - 1);
-  }
-  while (days.has(cursor.toISOString().slice(0, 10))) {
-    streak += 1;
-    cursor.setDate(cursor.getDate() - 1);
-  }
-  return streak;
-}
-
-/** 0–100 readiness score for a job based on prep completed. */
-export function readinessScore(job: Job, stories: StarStory[], sessions: MockSession[]): number {
-  let score = 0;
-  if (job.analysis) score += 25;
-  if (job.questions.length > 0) score += 15;
-  const practiced = job.questions.filter((q) => q.practiced).length;
-  score += Math.min(20, practiced * 4);
-  const jobSessions = sessions.filter((s) => s.jobId === job.id && s.endedAt);
-  score += Math.min(25, jobSessions.length * 12.5);
-  score += Math.min(15, stories.length * 3);
-  return Math.round(Math.min(100, score));
-}

@@ -1,4 +1,4 @@
-import type { JobAnalysis, QuestionCategory } from "@/lib/types";
+import type { JobAnalysis, QuestionCategory } from "../types.ts";
 
 /** Prompt builders for the Gemini-backed engine. All request strict JSON. */
 

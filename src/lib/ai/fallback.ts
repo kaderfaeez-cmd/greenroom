@@ -4,8 +4,8 @@ import type {
   JobAnalysis,
   MockScores,
   QuestionCategory,
-} from "@/lib/types";
-import { uid } from "@/lib/utils";
+} from "../types.ts";
+import { uid } from "../utils.ts";
 
 /**
  * Zero-key analysis engine. Used when no Gemini key is configured or the API

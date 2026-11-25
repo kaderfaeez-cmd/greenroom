@@ -200,6 +200,11 @@ export function QuestionsPanel({ job }: { job: Job }) {
                         <blockquote className="rounded-lg border-l-2 border-accent bg-accent-soft/50 px-3.5 py-2.5 text-sm italic leading-relaxed">
                           {q.strongAnswerExample}
                         </blockquote>
+                        {q.strongAnswerExample.includes("[") && (
+                          <p className="mt-1.5 text-xs text-text-tertiary">
+                            Replace the [bracketed] parts with your own facts.
+                          </p>
+                        )}
                       </Detail>
                       <Detail label="Common mistakes">
                         <ul className="space-y-1.5">

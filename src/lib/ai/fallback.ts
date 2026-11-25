@@ -227,7 +227,7 @@ const QUESTION_TEMPLATES: QuestionTemplate[] = [
     whyTheyAsk: "Opens every screen. Recruiters check communication, relevance, and whether your story maps to the job.",
     evaluating: ["Concise self-presentation", "Relevance to the role", "Genuine motivation"],
     answerFramework: "Present → past → future: current position and strength, one relevant achievement, why THIS role is the logical next step. 60–90 seconds.",
-    strongAnswerExample: "I'm a developer focused on shipping user-facing products — most recently I built and launched a web platform that grew to 140+ active users. Before that I delivered client projects end to end. I'm applying here because this role centres on exactly that: owning features from idea to production.",
+    strongAnswerExample: "I'm a [your current role] focused on [your core strength]. Most recently I [one concrete achievement, with a number: users, revenue, time saved]. Before that I [one relevant earlier experience]. I'm applying here because this role centres on [what the job needs that matches your strength], which is the logical next step for me.",
     commonMistakes: ["Reciting your CV chronologically", "Talking for 3+ minutes", "No link back to the role"],
   },
   {
@@ -237,7 +237,7 @@ const QUESTION_TEMPLATES: QuestionTemplate[] = [
     whyTheyAsk: "Budget filter. They want to know early if you're affordable — and whether you know your market value.",
     evaluating: ["Market awareness", "Negotiation posture", "Flexibility"],
     answerFramework: "Give a researched range, anchor slightly above target, signal flexibility on total package. Never a single number, never 'whatever you offer'.",
-    strongAnswerExample: "Based on market data for this level and location I'm targeting the R–R range, though I weigh total package and growth, so I'm open to discussing structure.",
+    strongAnswerExample: "Based on market data for this level and location I'm targeting [your researched range, e.g. low end to high end per year], though I weigh total package and growth, so I'm open to discussing structure.",
     commonMistakes: ["Underselling out of fear", "Refusing to answer at all", "Naming a number without research"],
   },
   {
@@ -247,7 +247,7 @@ const QUESTION_TEMPLATES: QuestionTemplate[] = [
     whyTheyAsk: "Deadline pressure is universal. They probe prioritisation, communication, and composure.",
     evaluating: ["Prioritisation", "Communication under pressure", "Outcome ownership"],
     answerFramework: "STAR. Emphasise the decision you made about what NOT to do, how you communicated the trade-off, and the measurable result.",
-    strongAnswerExample: "Client needed a working recipe platform before a product launch (S). I owned the build (T). I cut scope to the core QR flow, shipped that first, and flagged the deferred features in writing (A). We launched on time; deferred items shipped the next week (R).",
+    strongAnswerExample: "[Who] needed [what] by [a fixed date] (S). I owned [your part] (T). I cut scope to [the one thing that mattered most], shipped that first, and flagged the deferred features in writing (A). We delivered on time; the deferred items followed [when] (R).",
     commonMistakes: ["Story with no measurable result", "Hero narrative — 'I worked all night'", "Blaming others for the deadline"],
   },
   {
@@ -280,7 +280,7 @@ const QUESTION_TEMPLATES: QuestionTemplate[] = [
     whyTheyAsk: "Project deep-dives separate people who used a technology from people who understand it.",
     evaluating: ["Depth of understanding", "Decision-making rationale", "Trade-off awareness"],
     answerFramework: "Context → constraint → decision → alternative you rejected and why → outcome. Name specific trade-offs; that's what seniors listen for.",
-    strongAnswerExample: "For a live prediction platform I chose server-side rendering for the leaderboard because scores change constantly and SEO mattered. I considered pure client fetching but first-paint latency on mobile data was unacceptable. Result: sub-second loads for 148 active users during the tournament.",
+    strongAnswerExample: "On [project], I chose [approach] for [component] because [constraint, e.g. data changes constantly and SEO mattered]. I considered [alternative] but rejected it because [trade-off]. Result: [measurable outcome, e.g. load time or error rate, and for how many users].",
     commonMistakes: ["Describing WHAT without WHY", "Claiming solo credit for team work", "No mention of trade-offs considered"],
   },
   {
@@ -328,7 +328,7 @@ const QUESTION_TEMPLATES: QuestionTemplate[] = [
     whyTheyAsk: "Filters spray-and-pray applicants. They want evidence you researched them.",
     evaluating: ["Research effort", "Genuine motivation", "Values alignment"],
     answerFramework: "One specific fact about the company (product, market, engineering culture) + one personal connection to it + what you bring. Never 'great culture' with no specifics.",
-    strongAnswerExample: "Your product solves scheduling for small clinics — I've built client platforms in exactly that under-served small-business space, and I like that your engineering blog shows you ship weekly. That pace matches how I work.",
+    strongAnswerExample: "Your product [one specific thing it does, for whom]. I've [your experience that connects to it], and I noticed [a specific fact from your research, e.g. how often they ship or a recent launch]. That matches how I work.",
     commonMistakes: ["Generic praise that fits any company", "Only talking about what YOU get", "Visibly zero research"],
   },
   {

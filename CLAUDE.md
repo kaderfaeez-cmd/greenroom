@@ -77,7 +77,10 @@ in `useMounted.ts`, `ThemeToggle.tsx`, `jobs/page.tsx` and `jobs/[id]/page.tsx` 
 - Vercel, Node.js serverless runtime (`runtime = "nodejs"`, `maxDuration = 60`). How deploys
   are triggered (git integration or CLI) is not recorded here; never push or deploy without the
   owner's go-ahead.
-- Env vars: `GEMINI_API_KEY` (optional; without it the app runs on the quick engine).
+- Env vars (names in `.env.example`): `GEMINI_API_KEY` (optional; without it the app runs on
+  the quick engine).
+- Security headers and the CSP are set in `next.config.ts` (static CSP, `'unsafe-inline'`
+  scripts because of the App Router's inline payload and the theme script).
 
 ## Conventions
 - Conventional commits. API errors use `{ ok: false, error }`; successes `{ ok: true, engine, data }`.

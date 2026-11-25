@@ -38,19 +38,19 @@ Paste a job description. Greenroom builds your complete interview preparation wo
 
 ## Stack
 
-Next.js 15 (App Router) · TypeScript · Tailwind v4 · zustand · Framer Motion · cmdk (⌘K palette) · Lucide
+Next.js 16 (App Router) · TypeScript · Tailwind v4 · zustand · zod · Framer Motion · cmdk (⌘K palette) · Lucide
 
 ## Run locally
 
 ```bash
 npm install
 npm run dev
+npm test        # unit tests (node --test, Node 22.18+ / 24)
 ```
 
-Optional — enable the full AI engine:
+Optional — enable the full AI engine: copy `.env.example` to `.env.local` and set
 
 ```bash
-# .env.local
 GEMINI_API_KEY=your_free_key   # https://aistudio.google.com/apikey
 ```
 

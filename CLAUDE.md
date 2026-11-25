@@ -56,7 +56,14 @@ in `useMounted.ts`, `ThemeToggle.tsx`, `jobs/page.tsx` and `jobs/[id]/page.tsx` 
 - Must stay covered: the `/api/ai` request validation and fallbacks, the heuristic engine.
 
 ## Security-sensitive areas
-- `POST /api/ai` is public and spends the owner's Gemini quota.
+- `POST /api/ai` is public (no auth) and spends the owner's Gemini quota. `handleAiPost` checks,
+  in order: same-origin (`src/lib/ai/guard.ts`, 403), per-IP rate limit (30 / 10 min, 429),
+  body size (64 KB, 413), zod request schema with per-field limits (`schemas.ts`, `limits.ts`,
+  400). The route adds a daily cap of 500 Gemini calls (then the quick engine answers).
+  The limiter and cap are **in-memory per serverless instance** (no database): they reset on
+  cold starts and multiply with instance count. Documented in README "Abuse protection".
+- Gemini output is untrusted: every result is checked against a zod schema; mismatch means the
+  quick engine (or `ok: false` for STAR drafting).
 - Untrusted input: every `/api/ai` request body, Gemini output, imported backup files and the
   contents of `localStorage`.
 - React renders all AI/user text as text nodes; the only `dangerouslySetInnerHTML` is the

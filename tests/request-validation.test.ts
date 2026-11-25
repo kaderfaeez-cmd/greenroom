@@ -1,9 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { handleAiPost } from "../src/lib/ai/handler.ts";
-import { aiRequest, readJson, sampleAnalysis } from "./helpers.ts";
+import { aiRequest, readJson, sampleAnalysis, testDeps } from "./helpers.ts";
 
-const noAi = { generate: async () => null };
+const noAi = testDeps();
 
 test("questions with a partial analysis is a 400, not a crash", async () => {
   const res = await handleAiPost(aiRequest({ task: "questions", payload: { analysis: { role: "Engineer" } } }), noAi);
@@ -12,7 +12,7 @@ test("questions with a partial analysis is a 400, not a crash", async () => {
 });
 
 test("mock-question with an analysis missing technologies is a 400", async () => {
-  const partial: Record<string, unknown> = sampleAnalysis();
+  const partial: Record<string, unknown> = { ...sampleAnalysis() };
   delete partial.technologies;
   const res = await handleAiPost(
     aiRequest({ task: "mock-question", payload: { analysis: partial, category: "technical" } }),
@@ -35,11 +35,11 @@ test("a JSON body that is not an object is a 400", async () => {
 });
 
 test("an unexpected error becomes a safe 500 JSON error", async () => {
-  const boom = {
+  const boom = testDeps({
     generate: async (): Promise<string | null> => {
       throw new Error("secret internal detail");
     },
-  };
+  });
   const res = await handleAiPost(
     aiRequest({ task: "mock-feedback", payload: { question: "Why us?", answer: "Because." } }),
     boom,

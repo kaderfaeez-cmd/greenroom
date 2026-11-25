@@ -8,6 +8,13 @@ import {
 import { analyzeFallback, questionsFallback, scoreFallback } from "./fallback.ts";
 import type { z } from "zod";
 import {
+  MAX_BODY_BYTES,
+  clientKey,
+  isSameOrigin,
+  readBodyLimited,
+  type RateLimiter,
+} from "./guard.ts";
+import {
   aiFeedbackSchema,
   aiMockQuestionSchema,
   aiQuestionsSchema,
@@ -26,6 +33,7 @@ import {
  */
 export interface AiHandlerDeps {
   generate: (prompt: string) => Promise<string | null>;
+  limiter: RateLimiter;
 }
 
 /** Strip markdown fences and parse; returns null on malformed JSON. */
@@ -53,9 +61,22 @@ function bad(message: string, status = 400): Response {
 }
 
 export async function handleAiPost(req: Request, deps: AiHandlerDeps): Promise<Response> {
+  if (!isSameOrigin(req.headers)) return bad("Cross-site requests are not allowed", 403);
+
+  const rate = deps.limiter.check(clientKey(req.headers));
+  if (!rate.ok) {
+    return Response.json(
+      { ok: false, error: "Too many requests — wait a few minutes and try again" },
+      { status: 429, headers: { "Retry-After": String(rate.retryAfterSec) } },
+    );
+  }
+
+  const text = await readBodyLimited(req, MAX_BODY_BYTES);
+  if (text === null) return bad("Request too large", 413);
+
   let raw: unknown;
   try {
-    raw = await req.json();
+    raw = JSON.parse(text);
   } catch {
     return bad("Invalid JSON body");
   }

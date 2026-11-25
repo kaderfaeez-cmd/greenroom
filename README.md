@@ -25,6 +25,17 @@ Paste a job description. Greenroom builds your complete interview preparation wo
 - **Two-tier AI engine** — deep analysis via Google Gemini (`GEMINI_API_KEY`, free tier) with a deterministic heuristic engine as automatic fallback. The UI labels which engine produced each result. The app is fully functional with zero keys.
 - **Design system** — OKLCH token palette (light + dark), Geist type, quiet Linear-style surfaces. Motion communicates state only.
 
+## Abuse protection for `/api/ai`
+
+`POST /api/ai` is public and spends the site owner's Gemini quota, so it:
+
+- refuses cross-site requests (`Origin` must match the host; `Sec-Fetch-Site` must be `same-origin`). This stops other websites from using the endpoint and casual `curl` use; a scripted client can still forge these headers, which is what the limits below are for;
+- caps the request body at 64 KB and every field at a fixed length (`src/lib/ai/limits.ts`);
+- rate-limits each client IP to 30 requests per 10 minutes (HTTP 429 with `Retry-After`);
+- stops calling Gemini after 500 calls per UTC day and answers with the quick engine instead.
+
+**Limitation (serverless):** there is no database, so the rate limiter and daily cap are in-memory and **per server instance**. On Vercel each warm instance has its own counters and a cold start resets them, so the real ceiling is the limits above multiplied by the number of live instances. For a hard ceiling, also set a quota on the API key in Google AI Studio / Cloud Console, or move the counters to a shared store such as Upstash Redis.
+
 ## Stack
 
 Next.js 15 (App Router) · TypeScript · Tailwind v4 · zustand · Framer Motion · cmdk (⌘K palette) · Lucide

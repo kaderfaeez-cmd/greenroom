@@ -1,9 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { handleAiPost } from "../src/lib/ai/handler.ts";
-import { aiRequest, readJson, sampleAnalysis, SAMPLE_DESCRIPTION } from "./helpers.ts";
+import { aiRequest, readJson, sampleAnalysis, SAMPLE_DESCRIPTION, testDeps } from "./helpers.ts";
 
-const noAi = { generate: async () => null };
+const noAi = testDeps();
 
 test("analyze falls back to the quick engine when the AI is unavailable", async () => {
   const res = await handleAiPost(aiRequest({ task: "analyze", payload: { description: SAMPLE_DESCRIPTION } }), noAi);
@@ -39,7 +39,7 @@ test("questions fall back to templates for a complete analysis", async () => {
 });
 
 test("a valid AI analysis is returned with engine ai", async () => {
-  const ai = { generate: async () => JSON.stringify(sampleAnalysis({ company: "FromAI" })) };
+  const ai = testDeps({ generate: async () => JSON.stringify(sampleAnalysis({ company: "FromAI" })) });
   const res = await handleAiPost(aiRequest({ task: "analyze", payload: { description: SAMPLE_DESCRIPTION } }), ai);
   const body = await readJson(res);
   assert.equal(body.engine, "ai");

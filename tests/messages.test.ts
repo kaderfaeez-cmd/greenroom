@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { handleAiPost } from "../src/lib/ai/handler.ts";
-import { aiRequest, readJson } from "./helpers.ts";
+import { aiRequest, readJson, testDeps } from "./helpers.ts";
 
 test("STAR drafting failure does not tell the user to add a key in Settings", async () => {
   const res = await handleAiPost(
@@ -9,7 +9,7 @@ test("STAR drafting failure does not tell the user to add a key in Settings", as
       task: "star-suggest",
       payload: { competency: "Leadership", roughNotes: "I led the migration of our billing system last year." },
     }),
-    { generate: async () => null },
+    testDeps(),
   );
   const body = await readJson(res);
   assert.equal(body.ok, false);

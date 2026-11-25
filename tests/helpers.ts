@@ -1,4 +1,16 @@
 import type { JobAnalysis } from "../src/lib/types.ts";
+import type { AiHandlerDeps } from "../src/lib/ai/handler.ts";
+import { RateLimiter } from "../src/lib/ai/guard.ts";
+
+/** Handler deps for tests: no AI by default and a fresh, generous rate limiter. */
+export function testDeps(
+  opts: { generate?: AiHandlerDeps["generate"]; limit?: number } = {},
+): AiHandlerDeps {
+  return {
+    generate: opts.generate ?? (async () => null),
+    limiter: new RateLimiter(opts.limit ?? 1_000, 60_000),
+  };
+}
 
 /** A complete, valid JobAnalysis for tests. */
 export function sampleAnalysis(overrides: Partial<JobAnalysis> = {}): JobAnalysis {

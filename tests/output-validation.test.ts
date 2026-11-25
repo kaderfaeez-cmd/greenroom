@@ -1,9 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { handleAiPost } from "../src/lib/ai/handler.ts";
-import { aiRequest, readJson, sampleAnalysis, SAMPLE_DESCRIPTION } from "./helpers.ts";
+import { aiRequest, readJson, sampleAnalysis, SAMPLE_DESCRIPTION, testDeps } from "./helpers.ts";
 
-const ai = (text: string) => ({ generate: async () => text });
+const ai = (text: string) => testDeps({ generate: async () => text });
 
 test("an AI analysis missing fields falls back to the quick engine", async () => {
   const res = await handleAiPost(

@@ -7,6 +7,7 @@ import type { Job, MockScores, MockSession, QuestionCategory } from "@/lib/types
 import { QUESTION_CATEGORY_LABELS } from "@/lib/types";
 import { useGreenroom } from "@/lib/store";
 import { callAi } from "@/lib/ai/client";
+import { LIMITS } from "@/lib/ai/limits";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Textarea } from "@/components/ui/Input";
@@ -99,7 +100,8 @@ export function MockPanel({ job }: { job: Job }) {
     const next = await callAi<string>("mock-question", {
       analysis: job.analysis,
       category: active.category,
-      previousTurns: updated ? transcript(updated) : "",
+      // The server caps the transcript length; long sessions send only the most recent part.
+      previousTurns: updated ? transcript(updated).slice(-LIMITS.previousTurns) : "",
     });
     setThinking(null);
     if (next.ok && next.data) {

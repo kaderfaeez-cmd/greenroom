@@ -1,23 +1,11 @@
 import { z } from "zod";
 import type { InterviewQuestion, JobAnalysis, MockScores } from "../types.ts";
+import { LIMITS } from "./limits.ts";
 
 /**
  * Schemas for everything that crosses the /api/ai boundary: request payloads
  * from the browser (untrusted) and JSON produced by Gemini (untrusted).
  */
-
-export const LIMITS = {
-  description: 20_000,
-  question: 2_000,
-  answer: 6_000,
-  roughNotes: 6_000,
-  competency: 100,
-  /** The client sends only the tail of the transcript, so this is never hit in normal use. */
-  previousTurns: 12_000,
-  shortText: 300,
-  longText: 2_000,
-  listItems: 30,
-} as const;
 
 const shortText = z.string().max(LIMITS.shortText);
 const longText = z.string().max(LIMITS.longText);

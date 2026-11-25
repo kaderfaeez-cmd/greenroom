@@ -6,13 +6,8 @@ import {
   starSuggestPrompt,
 } from "./prompts.ts";
 import { analyzeFallback, questionsFallback, scoreFallback } from "./fallback.ts";
-import type {
-  AiRequest,
-  InterviewQuestion,
-  JobAnalysis,
-  MockScores,
-  QuestionCategory,
-} from "../types.ts";
+import { aiRequestSchema, describeRequestError, type ValidAiRequest } from "./schemas.ts";
+import type { InterviewQuestion, JobAnalysis, MockScores } from "../types.ts";
 
 /**
  * Framework-free implementation of POST /api/ai. It takes a standard Request
@@ -42,24 +37,30 @@ function bad(message: string, status = 400): Response {
 }
 
 export async function handleAiPost(req: Request, deps: AiHandlerDeps): Promise<Response> {
-  const { generate } = deps;
-  let body: AiRequest;
+  let raw: unknown;
   try {
-    body = await req.json();
+    raw = await req.json();
   } catch {
     return bad("Invalid JSON body");
   }
-  const { task, payload } = body;
-  if (!task || typeof payload !== "object" || payload === null) {
-    return bad("Missing task or payload");
-  }
+  const parsed = aiRequestSchema.safeParse(raw);
+  if (!parsed.success) return bad(describeRequestError(parsed.error));
 
-  switch (task) {
+  try {
+    return await runTask(parsed.data, deps.generate);
+  } catch (err) {
+    console.error(`/api/ai ${parsed.data.task} failed:`, err);
+    return bad("Something went wrong on our side — try again", 500);
+  }
+}
+
+async function runTask(
+  request: ValidAiRequest,
+  generate: AiHandlerDeps["generate"],
+): Promise<Response> {
+  switch (request.task) {
     case "analyze": {
-      const description = payload.description;
-      if (typeof description !== "string" || description.trim().length < 40) {
-        return bad("Job description too short — paste the full posting");
-      }
+      const { description } = request.payload;
       const raw = await generate(analyzePrompt(description));
       const parsed = raw ? parseJson<JobAnalysis>(raw) : null;
       if (parsed && Array.isArray(parsed.requiredSkills)) {
@@ -73,8 +74,7 @@ export async function handleAiPost(req: Request, deps: AiHandlerDeps): Promise<R
     }
 
     case "questions": {
-      const analysis = payload.analysis as JobAnalysis | undefined;
-      if (!analysis?.role) return bad("Missing analysis");
+      const { analysis } = request.payload;
       const raw = await generate(questionsPrompt(analysis));
       type RawQuestion = Omit<InterviewQuestion, "id" | "practiced">;
       const parsed = raw ? parseJson<RawQuestion[]>(raw) : null;
@@ -94,10 +94,7 @@ export async function handleAiPost(req: Request, deps: AiHandlerDeps): Promise<R
     }
 
     case "mock-question": {
-      const analysis = payload.analysis as JobAnalysis | undefined;
-      const category = payload.category as QuestionCategory | undefined;
-      const previousTurns = typeof payload.previousTurns === "string" ? payload.previousTurns : "";
-      if (!analysis?.role || !category) return bad("Missing analysis or category");
+      const { analysis, category, previousTurns } = request.payload;
       const raw = await generate(mockQuestionPrompt(analysis, category, previousTurns));
       if (raw && raw.trim().length > 5) {
         return Response.json({ ok: true, engine: "ai", data: raw.trim() });
@@ -114,11 +111,7 @@ export async function handleAiPost(req: Request, deps: AiHandlerDeps): Promise<R
     }
 
     case "mock-feedback": {
-      const question = payload.question;
-      const answer = payload.answer;
-      if (typeof question !== "string" || typeof answer !== "string" || answer.trim().length === 0) {
-        return bad("Missing question or answer");
-      }
+      const { question, answer } = request.payload;
       const raw = await generate(mockFeedbackPrompt(question, answer));
       type FeedbackShape = { scores: MockScores; feedback: string };
       const parsed = raw ? parseJson<FeedbackShape>(raw) : null;
@@ -129,11 +122,7 @@ export async function handleAiPost(req: Request, deps: AiHandlerDeps): Promise<R
     }
 
     case "star-suggest": {
-      const competency = payload.competency;
-      const roughNotes = payload.roughNotes;
-      if (typeof competency !== "string" || typeof roughNotes !== "string" || roughNotes.trim().length < 20) {
-        return bad("Add more detail to your rough notes first (a few sentences)");
-      }
+      const { competency, roughNotes } = request.payload;
       const raw = await generate(starSuggestPrompt(competency, roughNotes));
       type StarShape = {
         title: string;
@@ -153,8 +142,5 @@ export async function handleAiPost(req: Request, deps: AiHandlerDeps): Promise<R
           "AI drafting needs a GEMINI_API_KEY. Your notes are saved — structure them manually with the four STAR fields, or add a key in Settings.",
       });
     }
-
-    default:
-      return bad(`Unknown task: ${task satisfies never}`);
   }
 }

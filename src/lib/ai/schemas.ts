@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { JobAnalysis } from "../types.ts";
+import type { InterviewQuestion, JobAnalysis, MockScores } from "../types.ts";
 
 /**
  * Schemas for everything that crosses the /api/ai boundary: request payloads
@@ -111,3 +111,47 @@ export function describeRequestError(error: z.ZodError): string {
   if (issue.code === "too_big") return `Input too long: ${issue.path.join(".")}`;
   return `Invalid request: ${issue.path.join(".") || "body"}`;
 }
+
+// ---------- Gemini output ----------
+
+const score = z.number().min(0).max(10);
+
+export const mockScoresSchema: z.ZodType<MockScores> = z.object({
+  structure: score,
+  clarity: score,
+  depth: score,
+  confidence: score,
+  overall: score,
+});
+
+export const aiFeedbackSchema = z.object({
+  scores: mockScoresSchema,
+  feedback: z.string().min(1).max(6_000),
+});
+
+export const aiQuestionsSchema = z
+  .array(
+    z.object({
+      category: categorySchema,
+      question: z.string().min(1).max(LIMITS.longText),
+      whyTheyAsk: longText,
+      evaluating: textList,
+      answerFramework: longText,
+      strongAnswerExample: longText,
+      commonMistakes: textList,
+      difficulty: z.enum(["easy", "medium", "hard"]),
+    }) satisfies z.ZodType<Omit<InterviewQuestion, "id" | "practiced">>,
+  )
+  .min(1)
+  .max(20);
+
+export const aiStarSchema = z.object({
+  title: shortText.min(1),
+  situation: longText.min(1),
+  task: longText,
+  action: longText,
+  result: longText,
+  tags: z.array(shortText).max(10),
+});
+
+export const aiMockQuestionSchema = z.string().trim().min(6).max(LIMITS.longText);

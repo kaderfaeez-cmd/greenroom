@@ -6,8 +6,17 @@ import {
   starSuggestPrompt,
 } from "./prompts.ts";
 import { analyzeFallback, questionsFallback, scoreFallback } from "./fallback.ts";
-import { aiRequestSchema, describeRequestError, type ValidAiRequest } from "./schemas.ts";
-import type { InterviewQuestion, JobAnalysis, MockScores } from "../types.ts";
+import type { z } from "zod";
+import {
+  aiFeedbackSchema,
+  aiMockQuestionSchema,
+  aiQuestionsSchema,
+  aiRequestSchema,
+  aiStarSchema,
+  describeRequestError,
+  jobAnalysisSchema,
+  type ValidAiRequest,
+} from "./schemas.ts";
 
 /**
  * Framework-free implementation of POST /api/ai. It takes a standard Request
@@ -20,16 +29,23 @@ export interface AiHandlerDeps {
 }
 
 /** Strip markdown fences and parse; returns null on malformed JSON. */
-function parseJson<T>(raw: string): T | null {
+function parseJson(raw: string): unknown {
   try {
     const cleaned = raw
       .replace(/^```(?:json)?\s*/i, "")
       .replace(/\s*```\s*$/, "")
       .trim();
-    return JSON.parse(cleaned) as T;
+    return JSON.parse(cleaned);
   } catch {
     return null;
   }
+}
+
+/** Model output is untrusted: accept it only if it matches the schema exactly. */
+function parseAiJson<T>(raw: string | null, schema: z.ZodType<T>): T | null {
+  if (!raw) return null;
+  const result = schema.safeParse(parseJson(raw));
+  return result.success ? result.data : null;
 }
 
 function bad(message: string, status = 400): Response {
@@ -61,9 +77,8 @@ async function runTask(
   switch (request.task) {
     case "analyze": {
       const { description } = request.payload;
-      const raw = await generate(analyzePrompt(description));
-      const parsed = raw ? parseJson<JobAnalysis>(raw) : null;
-      if (parsed && Array.isArray(parsed.requiredSkills)) {
+      const parsed = parseAiJson(await generate(analyzePrompt(description)), jobAnalysisSchema);
+      if (parsed) {
         return Response.json({ ok: true, engine: "ai", data: parsed });
       }
       return Response.json({
@@ -75,10 +90,8 @@ async function runTask(
 
     case "questions": {
       const { analysis } = request.payload;
-      const raw = await generate(questionsPrompt(analysis));
-      type RawQuestion = Omit<InterviewQuestion, "id" | "practiced">;
-      const parsed = raw ? parseJson<RawQuestion[]>(raw) : null;
-      if (parsed && Array.isArray(parsed) && parsed.length > 0 && parsed[0].question) {
+      const parsed = parseAiJson(await generate(questionsPrompt(analysis)), aiQuestionsSchema);
+      if (parsed) {
         const withIds = parsed.map((q, i) => ({
           ...q,
           id: `q_${Date.now().toString(36)}_${i}`,
@@ -96,8 +109,9 @@ async function runTask(
     case "mock-question": {
       const { analysis, category, previousTurns } = request.payload;
       const raw = await generate(mockQuestionPrompt(analysis, category, previousTurns));
-      if (raw && raw.trim().length > 5) {
-        return Response.json({ ok: true, engine: "ai", data: raw.trim() });
+      const question = aiMockQuestionSchema.safeParse(raw);
+      if (question.success) {
+        return Response.json({ ok: true, engine: "ai", data: question.data });
       }
       // Fallback: serve next unused template question for the category.
       const pool = questionsFallback(analysis).filter((q) => q.category === category);
@@ -112,10 +126,8 @@ async function runTask(
 
     case "mock-feedback": {
       const { question, answer } = request.payload;
-      const raw = await generate(mockFeedbackPrompt(question, answer));
-      type FeedbackShape = { scores: MockScores; feedback: string };
-      const parsed = raw ? parseJson<FeedbackShape>(raw) : null;
-      if (parsed?.scores && typeof parsed.feedback === "string") {
+      const parsed = parseAiJson(await generate(mockFeedbackPrompt(question, answer)), aiFeedbackSchema);
+      if (parsed) {
         return Response.json({ ok: true, engine: "ai", data: parsed });
       }
       return Response.json({ ok: true, engine: "quick", data: scoreFallback(answer) });
@@ -123,17 +135,8 @@ async function runTask(
 
     case "star-suggest": {
       const { competency, roughNotes } = request.payload;
-      const raw = await generate(starSuggestPrompt(competency, roughNotes));
-      type StarShape = {
-        title: string;
-        situation: string;
-        task: string;
-        action: string;
-        result: string;
-        tags: string[];
-      };
-      const parsed = raw ? parseJson<StarShape>(raw) : null;
-      if (parsed?.situation) {
+      const parsed = parseAiJson(await generate(starSuggestPrompt(competency, roughNotes)), aiStarSchema);
+      if (parsed) {
         return Response.json({ ok: true, engine: "ai", data: parsed });
       }
       return Response.json({

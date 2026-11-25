@@ -12,7 +12,8 @@ test("questions with a partial analysis is a 400, not a crash", async () => {
 });
 
 test("mock-question with an analysis missing technologies is a 400", async () => {
-  const { technologies: _omit, ...partial } = sampleAnalysis();
+  const partial: Record<string, unknown> = sampleAnalysis();
+  delete partial.technologies;
   const res = await handleAiPost(
     aiRequest({ task: "mock-question", payload: { analysis: partial, category: "technical" } }),
     noAi,

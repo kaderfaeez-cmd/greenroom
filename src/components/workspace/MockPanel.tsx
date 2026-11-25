@@ -26,6 +26,7 @@ export function MockPanel({ job }: { job: Job }) {
   const startSession = useGreenroom((s) => s.startSession);
   const appendTurn = useGreenroom((s) => s.appendTurn);
   const endSession = useGreenroom((s) => s.endSession);
+  const discardSession = useGreenroom((s) => s.discardSession);
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -45,6 +46,22 @@ export function MockPanel({ job }: { job: Job }) {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [active?.turns.length, thinking]);
+
+  // Leaving the tab or page mid-interview: keep answered sessions (ended), drop empty ones.
+  const activeIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    activeIdRef.current = activeId;
+  }, [activeId]);
+  useEffect(
+    () => () => {
+      const id = activeIdRef.current;
+      if (!id) return;
+      const session = useGreenroom.getState().sessions.find((s) => s.id === id);
+      if (session?.turns.some((t) => t.role === "candidate")) endSession(id);
+      else discardSession(id);
+    },
+    [endSession, discardSession],
+  );
 
   const transcript = (session: MockSession): string =>
     session.turns
@@ -67,6 +84,9 @@ export function MockPanel({ job }: { job: Job }) {
     if (result.ok && result.data) {
       appendTurn(session.id, { role: "interviewer", content: result.data });
     } else {
+      // No question means nothing to keep: remove the empty session instead of orphaning it.
+      discardSession(session.id);
+      setActiveId(null);
       setError(result.error ?? "Could not start the interview — try again");
     }
   };
@@ -86,12 +106,18 @@ export function MockPanel({ job }: { job: Job }) {
       question: lastQuestion,
       answer,
     });
+    const feedbackError =
+      fb.ok && fb.data
+        ? null
+        : `Couldn't score that answer: ${fb.error ?? "unknown error"}. Your answer is kept.`;
     if (fb.ok && fb.data) {
       appendTurn(active.id, {
         role: "feedback",
         content: fb.data.feedback,
         scores: fb.data.scores,
       });
+    } else {
+      setError(feedbackError);
     }
 
     // 2. Next question, aware of the running transcript.
@@ -107,7 +133,8 @@ export function MockPanel({ job }: { job: Job }) {
     if (next.ok && next.data) {
       appendTurn(active.id, { role: "interviewer", content: next.data });
     } else {
-      setError(next.error ?? "Interviewer lost connection — end the session or retry");
+      const nextError = next.error ?? "Interviewer lost connection — end the session or retry";
+      setError(feedbackError ? `${feedbackError} ${nextError}` : nextError);
     }
   };
 

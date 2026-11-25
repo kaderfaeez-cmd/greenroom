@@ -1,5 +1,25 @@
-import type { Job, MockSession, StarStory } from "./types.ts";
+import type { Job, MockSession, MockTurn, StarStory } from "./types.ts";
 import { dayKey } from "./dates.ts";
+
+/** Mean of the overall scores on feedback turns, one decimal; null if none. */
+export function averageOverall(turns: MockTurn[]): number | null {
+  const scores = turns.flatMap((t) => (t.role === "feedback" && t.scores ? [t.scores.overall] : []));
+  if (scores.length === 0) return null;
+  return Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10;
+}
+
+/**
+ * Sessions left open by a closed tab or a failed start: ones without any
+ * answer are dropped; answered ones are ended at their last turn and scored.
+ */
+export function closeOrphanedSessions(sessions: MockSession[]): MockSession[] {
+  return sessions.flatMap((s) => {
+    if (s.endedAt) return [s];
+    if (!s.turns.some((t) => t.role === "candidate")) return [];
+    const lastAt = s.turns[s.turns.length - 1]?.at ?? s.startedAt;
+    return [{ ...s, endedAt: lastAt, averageScore: averageOverall(s.turns) }];
+  });
+}
 
 /** Consecutive-day practice streak ending today or yesterday. */
 export function computeStreak(activityDays: string[], now: Date = new Date()): number {

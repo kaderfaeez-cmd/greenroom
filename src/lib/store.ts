@@ -15,6 +15,7 @@ import type {
 import { nowIso, uid } from "./utils.ts";
 import { dayKey } from "./dates.ts";
 import { STORE_VERSION, migrateState, type PersistedData } from "./persistence.ts";
+import { averageOverall, closeOrphanedSessions } from "./progress.ts";
 
 // Pure helpers live in progress.ts (testable without the store); re-exported
 // here so existing imports from "@/lib/store" keep working.
@@ -44,6 +45,8 @@ interface GreenroomState {
   startSession: (jobId: string, category: MockSession["category"]) => MockSession;
   appendTurn: (sessionId: string, turn: Omit<MockTurn, "id" | "at">) => void;
   endSession: (sessionId: string) => void;
+  /** Removes a session that never got going (e.g. its opening question failed). */
+  discardSession: (sessionId: string) => void;
 
   recordActivity: () => void;
 }
@@ -199,18 +202,15 @@ export const useGreenroom = create<GreenroomState>()(
 
       endSession: (sessionId) =>
         set((s) => ({
-          sessions: s.sessions.map((x) => {
-            if (x.id !== sessionId) return x;
-            const scores = x.turns
-              .filter((t) => t.role === "feedback" && t.scores)
-              .map((t) => t.scores!.overall);
-            const averageScore =
-              scores.length > 0
-                ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10
-                : null;
-            return { ...x, endedAt: nowIso(), averageScore };
-          }),
+          sessions: s.sessions.map((x) =>
+            x.id === sessionId
+              ? { ...x, endedAt: nowIso(), averageScore: averageOverall(x.turns) }
+              : x,
+          ),
         })),
+
+      discardSession: (sessionId) =>
+        set((s) => ({ sessions: s.sessions.filter((x) => x.id !== sessionId) })),
 
       recordActivity: () =>
         set((s) =>
@@ -224,6 +224,15 @@ export const useGreenroom = create<GreenroomState>()(
       storage: createJSONStorage(() => localStorage),
       version: STORE_VERSION,
       migrate: (persisted, version) => migrateState(persisted, version),
+      // Runs on every load: close sessions an earlier tab left open mid-interview.
+      merge: (persisted, current) => {
+        const data = (persisted ?? {}) as Partial<PersistedData>;
+        return {
+          ...current,
+          ...data,
+          sessions: closeOrphanedSessions(data.sessions ?? current.sessions),
+        };
+      },
       partialize: (s): PersistedData => ({
         jobs: s.jobs,
         stories: s.stories,

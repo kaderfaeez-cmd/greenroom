@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { Download, KeyRound, Trash2, Upload } from "lucide-react";
 import { useGreenroom } from "@/lib/store";
 import { parseBackup } from "@/lib/backup";
+import { dayKey } from "@/lib/dates";
 import { useMounted } from "@/hooks/useMounted";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -27,7 +28,7 @@ export default function SettingsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `greenroom-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `greenroom-backup-${dayKey(new Date())}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };

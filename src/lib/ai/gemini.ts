@@ -16,9 +16,10 @@ export async function callGemini(
 ): Promise<string | null> {
   if (!apiKey) return null;
   try {
-    const res = await fetchImpl(`${GEMINI_URL}?key=${apiKey}`, {
+    // Key goes in a header, not the query string: URLs end up in logs and traces.
+    const res = await fetchImpl(GEMINI_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
@@ -26,7 +27,7 @@ export async function callGemini(
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
     if (!res.ok) {
-      console.error(`Gemini error ${res.status}: ${await res.text()}`);
+      console.error(`Gemini error ${res.status}: ${(await res.text()).slice(0, 300)}`);
       return null;
     }
     const data = await res.json();

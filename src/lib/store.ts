@@ -14,6 +14,7 @@ import type {
 } from "./types.ts";
 import { nowIso, uid } from "./utils.ts";
 import { dayKey } from "./dates.ts";
+import { STORE_VERSION, migrateState, type PersistedData } from "./persistence.ts";
 
 // Pure helpers live in progress.ts (testable without the store); re-exported
 // here so existing imports from "@/lib/store" keep working.
@@ -221,6 +222,14 @@ export const useGreenroom = create<GreenroomState>()(
     {
       name: "greenroom-v1",
       storage: createJSONStorage(() => localStorage),
+      version: STORE_VERSION,
+      migrate: (persisted, version) => migrateState(persisted, version),
+      partialize: (s): PersistedData => ({
+        jobs: s.jobs,
+        stories: s.stories,
+        sessions: s.sessions,
+        activityDays: s.activityDays,
+      }),
     },
   ),
 );

@@ -27,6 +27,10 @@ Single-user, no accounts. Portfolio project, live at https://greenroom-lime.verc
 - `src/lib/store.ts`: zustand store. Pure helpers live in `progress.ts` (streak, readiness),
   `dates.ts` and `backup.ts` so they can be tested without the store.
 - `src/lib/ai/client.ts`: browser wrapper for `/api/ai`.
+- `src/lib/persistence.ts`: zod schema of the persisted data, `STORE_VERSION` and `migrateState`
+  (wired into zustand `persist` as `version`/`migrate`). When the stored shape changes, bump
+  `STORE_VERSION` and add a migration step there, with a test. `backup.ts` validates imported
+  backups against the same schema (strict: a damaged file is rejected whole).
 
 ### Import convention
 Modules under `src/lib/` that tests load use **relative imports with a `.ts` extension**

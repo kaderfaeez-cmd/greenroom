@@ -142,7 +142,7 @@ async function runTask(
       return Response.json({
         ok: false,
         error:
-          "AI drafting needs a GEMINI_API_KEY. Your notes are saved — structure them manually with the four STAR fields, or add a key in Settings.",
+          "AI drafting isn't available right now (the AI engine is not set up on this site or didn't return a usable draft). Your notes are kept — structure them manually with the four STAR fields.",
       });
     }
   }

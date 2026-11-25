@@ -57,7 +57,7 @@ export function EngineTag({ engine }: { engine: "ai" | "quick" | undefined }) {
       title={
         engine === "ai"
           ? "Generated with the full AI engine"
-          : "Quick analysis (no API key configured) — add a free Gemini key in Settings for deeper results"
+          : "Built-in quick engine: the full AI engine is not set up on this site, or it didn't return a usable result this time"
       }
     >
       {engine === "ai" ? "AI engine" : "Quick engine"}
